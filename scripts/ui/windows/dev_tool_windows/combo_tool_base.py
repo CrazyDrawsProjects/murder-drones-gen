@@ -7,6 +7,7 @@ from scripts.cat.cats import Cat
 from scripts.cat.factories.test_cat_factory import TestCatFactory
 from scripts.cat.sprites.load_sprites import sprites
 from scripts.events_module.text_adjust import adjust_list_text
+from scripts.game_structure import constants
 from scripts.game_structure.game import Switch
 from scripts.game_structure.game.switches import switch_set_value
 from scripts.game_structure.screen_settings import MANAGER
@@ -25,6 +26,8 @@ class ComboToolWindow(GameWindow):
             ui_scale(pygame.Rect((100, 100), (600, 500))),
         )
         self.current_pose = "adult_short2"
+        self.current_species = list(constants.SPECIES["species"].keys())[0]
+        self.folder = 1
 
         self.elements = {}
 
@@ -85,11 +88,26 @@ class ComboToolWindow(GameWindow):
             ui_scale(pygame.Rect((50, 30), (170, 34))),
             dropdown_dimensions=ui_scale_dimensions((170, 250)),
             parent_text="pose choice",
-            item_list=[p for p in sprites.POSE_DATA["poses"] if p],
+            item_list=[p for p in getattr(sprites, f"POSE_DATA_{self.folder}")["poses"] if p],
             manager=MANAGER,
             container=self,
             anchors={
                 "top_target": self.elements["existing_combos"].parent_button,
+                "left_target": self.elements["preview_cat"],
+            },
+            child_trigger_close=True,
+            starting_height=3,
+            multiple_choice=False,
+        )
+        self.elements["species_choice"] = UIScrollingDropDown(
+            ui_scale(pygame.Rect((50, 30), (170, 34))),
+            dropdown_dimensions=ui_scale_dimensions((170, 250)),
+            parent_text="species choice",
+            item_list=list(constants.SPECIES["species"].keys()),
+            manager=MANAGER,
+            container=self,
+            anchors={
+                "top_target": self.elements["pose_choice"].parent_button,
                 "left_target": self.elements["preview_cat"],
             },
             child_trigger_close=True,
@@ -146,6 +164,19 @@ class ComboToolWindow(GameWindow):
                         self.example_cat.sprite, ui_scale_dimensions((200, 200))
                     )
                 )
+            if event.ui_element == self.elements["species_choice"].child_button_container:
+                selection = self.elements["species_choice"].selected_list
+                if not selection:
+                    return
+                self.current_species = selection[0]
+                self.folder = list(constants.SPECIES["species"].keys()).index(selection[0]) + 1
+                self.clear()
+                self.example_cat = self.create_cat("TEST")
+                self.elements["example_cat"].set_image(
+                    pygame.transform.scale(
+                        self.example_cat.sprite, ui_scale_dimensions((200, 200))
+                    )
+                )
         elif event.type == pygame_gui.UI_BUTTON_ON_HOVERED:
             for name, button in self.elements[
                 "existing_combos"
@@ -168,6 +199,18 @@ class ComboToolWindow(GameWindow):
                         )
                     )
                     return
+            for name, button in self.elements["species_choice"].child_button_dicts.items():
+                if button == event.ui_element:
+                    self.current_species = name
+                    self.folder = list(constants.SPECIES["species"].keys()).index(name) + 1
+                    self.clear()
+                    self.example_cat = self.create_cat("TEST")
+                    self.elements["example_cat"].set_image(
+                        pygame.transform.scale(
+                            self.example_cat.sprite, ui_scale_dimensions((200, 200))
+                        )
+                    )
+                    return
 
     def create_cat(self, patch: str) -> Cat:
         """
@@ -180,6 +223,11 @@ class ComboToolWindow(GameWindow):
         Class to be overridden by subclasses
         """
         return {}
+
+    def clear(self):
+        """
+        Class to be overridden by subclasses
+        """
 
     def kill(self):
         super().kill()

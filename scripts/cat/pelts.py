@@ -1192,7 +1192,7 @@ class Pelt:
             chance = 40
         # Chance of point is 1 / chance.
         if self.name != "Tortie" and not int(random.random() * chance):
-            self.points = random.choice(getattr(Pelt, f"point_markings_{self.index}"))
+            self.points = random.choice(getattr(Pelt, f"points_markings_{self.index}"))
         else:
             self.points = None
 

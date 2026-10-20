@@ -10,6 +10,7 @@ from scripts.game_structure import constants
 
 
 class TestCatFactory(NewCatFactory):
+    @classmethod
     def _get_random_species(cls, parents, par2=None) -> str:
         return list(constants.SPECIES["species"])[0]
 

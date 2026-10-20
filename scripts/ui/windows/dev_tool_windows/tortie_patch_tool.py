@@ -7,6 +7,7 @@ import ujson
 from scripts.cat.factories.test_cat_factory import TestCatFactory
 from scripts.cat.pelts import Pelt
 from scripts.cat.sprites.load_sprites import sprites
+from scripts.game_structure import constants
 from scripts.game_structure.screen_settings import MANAGER
 from scripts.ui.elements.scrolling_button_list import SELECTION_CHANGED
 from scripts.ui.elements.scrolling_dropdown import UIScrollingDropDown
@@ -17,7 +18,9 @@ from scripts.ui.windows.dev_tool_windows.combo_tool_base import ComboToolWindow
 class TortiePatchToolWindow(ComboToolWindow):
     def __init__(self):
         super().__init__()
-        sprites.create_patch_combo(combos={"TEST": []}, sheet_name="patches_tortie")
+        sprites.create_patch_combo(
+            combos={"TEST": []}, sheet_name="patches_tortie", folder=self.folder,
+        )
 
         self.example_cat = self.create_cat(patch="TEST")
         self.preview_cat = self.create_cat(patch="TEST")
@@ -27,7 +30,7 @@ class TortiePatchToolWindow(ComboToolWindow):
     def create_elements(self):
         super().create_elements()
         patches = list(
-            itertools.chain.from_iterable(sprites.TORTIE_DATA["sprite_list"])
+            itertools.chain.from_iterable(getattr(sprites, f"TORTIE_DATA_{self.folder}")["sprite_list"])
         )
         patches.sort()
         self.elements["patch_choice"] = UIScrollingDropDown(
@@ -85,13 +88,13 @@ class TortiePatchToolWindow(ComboToolWindow):
                 self.elements["existing_combos"].new_item_list(combos)
                 self.elements["name_entry"].set_text("")
             elif event.ui_element == self.elements["clear_button"]:
-                self.elements["patch_choice"].set_selected_list([])
-                self.elements["existing_combos"].set_selected_list([])
+                self.clear()
 
     def set_combo_selection(self, selection):
         sprites.create_patch_combo(
             combos={"TEST": selection},
             sheet_name="patches_tortie",
+            folder=self.folder,
         )
         self.example_cat = self.create_cat("TEST")
         self.elements["example_cat"].set_image(
@@ -110,7 +113,7 @@ class TortiePatchToolWindow(ComboToolWindow):
             self.elements["save_text"].set_text("missing information...")
             return
 
-        path = "sprites/dicts/tortie_patches_combos.json"
+        path = f"sprites/{self.folder}/dicts/tortie_patches_combos.json"
         try:
             with open(path, "r") as read_file:
                 combos = read_file.read()
@@ -135,6 +138,7 @@ class TortiePatchToolWindow(ComboToolWindow):
         sprites.create_patch_combo(
             combos={name: selection},
             sheet_name="patches_tortie",
+            folder=self.folder,
         )
 
         self.elements["save_text"].set_text("saved!")
@@ -143,6 +147,7 @@ class TortiePatchToolWindow(ComboToolWindow):
         new_cat = TestCatFactory.create_cat(
             moons=60,
             loading_cat=True,
+            species=self.current_species,
             pelt=Pelt(
                 name="Tortie",
                 colour="BLACK",
@@ -166,6 +171,10 @@ class TortiePatchToolWindow(ComboToolWindow):
 
     def get_combos(self) -> dict:
         with open(
-            "sprites/dicts/tortie_patches_combos.json", "r", encoding="utf-8"
+            f"sprites/{self.folder}/dicts/tortie_patches_combos.json", "r", encoding="utf-8"
         ) as read_file:
             return ujson.loads(read_file.read())
+
+    def clear(self):
+        self.elements["patch_choice"].set_selected_list([])
+        self.elements["existing_combos"].set_selected_list([])

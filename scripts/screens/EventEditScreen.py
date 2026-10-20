@@ -137,6 +137,9 @@ class EventEditScreen(Screens):
     new_cat_bools: list = TAGS["new_cat"]["bool_settings"]
     """New cat tag list. Holds tag name, setting, and conflicts."""
 
+    new_cat_species: list = list(constants.SPECIES["species"].keys())
+    """All species available to new cats."""
+
     new_cat_ranks: list = all_ranks.copy()
     """All ranks available to new cats."""
     for rank in TAGS["new_cat"]["disallowed_ranks"]:
@@ -362,6 +365,7 @@ class EventEditScreen(Screens):
         self.new_cat_element = {}
         self.new_cat_checkbox = {}
         self.cat_story_element = {}
+        self.new_species_element = {}
         self.new_status_element = {}
         self.new_age_element = {}
         self.new_gender_element = {}
@@ -1625,6 +1629,7 @@ class EventEditScreen(Screens):
         self.selected_new_cat = None
         self.new_cat_checkbox = {}
         self.cat_story_element = {}
+        self.new_species_element = {}
         self.new_status_element = {}
         self.new_age_element = {}
         self.new_gender_element = {}
@@ -3182,6 +3187,7 @@ class EventEditScreen(Screens):
         cat_type = []
         stories = []
         pool = []
+        species = []
         rank = []
         age = []
         gender = []
@@ -3203,6 +3209,8 @@ class EventEditScreen(Screens):
                             pool = pool_name
                 else:
                     pool = []
+            elif "species" in tag:
+                rank = [tag.replace("species:", "")]
             elif "status" in tag:
                 rank = [tag.replace("status:", "")]
             elif "age" in tag:
@@ -3219,6 +3227,7 @@ class EventEditScreen(Screens):
         self.cat_story_element["list"].set_selected_list(cat_type)
         self.backstory_element["pools"].set_selected_list(pool)
         self.backstory_element["list"].set_selected_list(stories)
+        self.new_species_element["list"].set_selected_list(species)
         self.new_status_element["list"].set_selected_list(rank)
         self.new_age_element["list"].set_selected_list(age)
         self.new_gender_element["list"].set_selected_list(gender)
@@ -3278,6 +3287,28 @@ class EventEditScreen(Screens):
 
         if new_story_tag and not existing_tag:
             selected_cat_info.append(new_story_tag)
+
+        # SPECIES
+        if self.new_species_element["list"].selected_list:
+            species = self.new_species_element["list"].selected_list[0]
+        else:
+            species = None
+
+        new_species_tag = f"species:{species}" if species else None
+
+        existing_tag = False
+        for tag in selected_cat_info.copy():
+            if "species" in tag and tag != new_species_tag:
+                existing_tag = True
+                selected_cat_info.remove(tag)
+                break
+            elif tag == new_species_tag:
+                existing_tag = True
+                break
+            existing_tag = False
+
+        if new_species_tag and not existing_tag:
+            selected_cat_info.append(new_species_tag)
 
         # RANK
         if self.new_status_element["list"].selected_list:
@@ -6152,6 +6183,9 @@ class EventEditScreen(Screens):
         # BACKSTORY
         self.create_story_editor()
 
+        # SPECIES
+        self.create_new_cat_species_editor()
+
         # STATUS
         self.create_new_cat_status_editor()
 
@@ -6332,7 +6366,7 @@ class EventEditScreen(Screens):
             line_spacing=1,
             manager=MANAGER,
             container=self.editor_container,
-            anchors={"top_target": self.editor_element["backstory"]},
+            anchors={"top_target": self.editor_element["species"]},
         )
         chosen_status = []
         for tag in self.new_cat_block_dict[self.selected_new_cat]:
@@ -6347,13 +6381,44 @@ class EventEditScreen(Screens):
             child_trigger_close=True,
             parent_reflect_selection=True,
             anchors={
-                "top_target": self.editor_element["backstory"],
+                "top_target": self.editor_element["species"],
                 "left_target": self.new_status_element["text"],
             },
             manager=MANAGER,
             starting_selection=chosen_status,
         )
         self.create_divider(self.new_status_element["text"], "rank")
+
+    def create_new_cat_species_editor(self):
+        self.new_species_element["text"] = UITextBoxTweaked(
+            "screens.event_edit.new_cat_species_info",
+            ui_scale(pygame.Rect((0, 14), (260, -1))),
+            object_id=get_text_box_theme("#text_box_30_horizleft_pad_10_10"),
+            line_spacing=1,
+            manager=MANAGER,
+            container=self.editor_container,
+            anchors={"top_target": self.editor_element["backstory"]},
+        )
+        chosen_species = []
+        for tag in self.new_cat_block_dict[self.selected_new_cat]:
+            if tag in self.new_cat_species:
+                chosen_species = [tag]
+        self.new_species_element["list"] = UIDropDown(
+            ui_scale(pygame.Rect((0, 26), (180, 30))),
+            parent_text="species",
+            item_list=self.new_cat_species,
+            disable_selection=False,
+            container=self.editor_container,
+            child_trigger_close=True,
+            parent_reflect_selection=True,
+            anchors={
+                "top_target": self.editor_element["backstory"],
+                "left_target": self.new_species_element["text"],
+            },
+            manager=MANAGER,
+            starting_selection=chosen_species,
+        )
+        self.create_divider(self.new_species_element["text"], "species")
 
     def create_story_editor(self):
         self.cat_story_element["text"] = UITextBoxTweaked(

@@ -7,6 +7,7 @@ import ujson
 from scripts.cat.factories.test_cat_factory import TestCatFactory
 from scripts.cat.pelts import Pelt
 from scripts.cat.sprites.load_sprites import sprites
+from scripts.game_structure import constants
 from scripts.game_structure.screen_settings import MANAGER
 from scripts.ui.elements.scrolling_button_list import SELECTION_CHANGED
 from scripts.ui.elements.scrolling_dropdown import UIScrollingDropDown
@@ -18,7 +19,7 @@ class WhitePatchToolWindow(ComboToolWindow):
     def __init__(self):
         super().__init__()
         sprites.create_patch_combo(
-            combos={"TEST": []}, sheet_name="patches_white_", white_category="little"
+            combos={"TEST": []}, sheet_name="patches_white_", white_category="little", folder=self.folder,
         )
 
         self.example_cat = self.create_cat(patch="TEST")
@@ -32,10 +33,10 @@ class WhitePatchToolWindow(ComboToolWindow):
         prev_element = self.elements["preview_cat"]
         i = 2
         for name, data in {
-            "little": sprites.WHITE_LITTLE_DATA,
-            "mid": sprites.WHITE_MID_DATA,
-            "high": sprites.WHITE_HIGH_DATA,
-            "mostly": sprites.WHITE_MOSTLY_DATA,
+            "little": getattr(sprites, f"WHITE_LITTLE_DATA_{self.folder}"),
+            "mid": getattr(sprites, f"WHITE_MID_DATA_{self.folder}"),
+            "high": getattr(sprites, f"WHITE_HIGH_DATA_{self.folder}"),
+            "mostly": getattr(sprites, f"WHITE_MOSTLY_DATA_{self.folder}"),
         }.items():
             patches = list(itertools.chain.from_iterable(data["sprite_list"]))
             patches.sort()
@@ -60,7 +61,7 @@ class WhitePatchToolWindow(ComboToolWindow):
             ui_scale(pygame.Rect((40, 360), (150, 34))),
             dropdown_dimensions=ui_scale_dimensions((150, 100)),
             parent_text="combo coverage",
-            item_list=list(sprites.WHITE_PATCH_COMBOS.keys()),
+            item_list=list(getattr(sprites, f"WHITE_PATCH_COMBOS_{self.folder}").keys()),
             manager=MANAGER,
             multiple_choice=False,
             container=self,
@@ -151,17 +152,14 @@ class WhitePatchToolWindow(ComboToolWindow):
                     self.elements["name_entry"].set_text("")
 
             elif event.ui_element == self.elements["clear_button"]:
-                self.elements["little_patch_choice"].set_selected_list([])
-                self.elements["mid_patch_choice"].set_selected_list([])
-                self.elements["high_patch_choice"].set_selected_list([])
-                self.elements["mostly_patch_choice"].set_selected_list([])
-                self.elements["existing_combos"].set_selected_list([])
+                self.clear()
 
     def set_combo_selection(self, selection):
         sprites.create_patch_combo(
             combos={"TEST": selection},
             sheet_name="patches_white_",
             white_category="little",
+            folder=self.folder
         )
         self.example_cat = self.create_cat("TEST")
         self.elements["example_cat"].set_image(
@@ -200,7 +198,7 @@ class WhitePatchToolWindow(ComboToolWindow):
             self.elements["save_text"].set_text("missing information...")
             return False
 
-        path = "sprites/dicts/white_patches_combos.json"
+        path = f"sprites/{self.folder}/dicts/white_patches_combos.json"
         try:
             with open(path, "r") as read_file:
                 combos = read_file.read()
@@ -226,6 +224,7 @@ class WhitePatchToolWindow(ComboToolWindow):
             combos={name: selection},
             sheet_name="patches_white_",
             white_category=coverage,
+            folder=self.folder
         )
 
         self.elements["save_text"].set_text("saved!")
@@ -235,6 +234,7 @@ class WhitePatchToolWindow(ComboToolWindow):
         new_cat = TestCatFactory.create_cat(
             moons=60,
             loading_cat=True,
+            species=self.current_species,
             pelt=Pelt(
                 name="Rosette",
                 colour="GINGER",
@@ -259,7 +259,7 @@ class WhitePatchToolWindow(ComboToolWindow):
 
     def get_combos(self) -> dict:
         with open(
-            "sprites/dicts/white_patches_combos.json", "r", encoding="utf-8"
+            f"sprites/{self.folder}/dicts/white_patches_combos.json", "r", encoding="utf-8"
         ) as read_file:
             combos = ujson.loads(read_file.read())
 
@@ -268,3 +268,10 @@ class WhitePatchToolWindow(ComboToolWindow):
             for c in combo_list:
                 output.update({c: combo_list[c]})
         return output
+
+    def clear(self):
+        self.elements["little_patch_choice"].set_selected_list([])
+        self.elements["mid_patch_choice"].set_selected_list([])
+        self.elements["high_patch_choice"].set_selected_list([])
+        self.elements["mostly_patch_choice"].set_selected_list([])
+        self.elements["existing_combos"].set_selected_list([])

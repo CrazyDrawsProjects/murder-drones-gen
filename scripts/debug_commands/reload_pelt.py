@@ -3,6 +3,7 @@ from scripts.debug_commands.command import Command
 from scripts.debug_commands.utils import add_output_line_to_log
 from scripts.cat.sprites.load_sprites import Sprites
 from scripts.cat.cats import Cat
+from scripts.game_structure import constants
 from scripts.game_structure.game.switches import switch_get_value, Switch
 
 from typing import TYPE_CHECKING
@@ -19,7 +20,8 @@ class ReloadPeltCommand(Command):
     aliases = ["rr"]
 
     def callback(self, _: list[str]):
-        Sprites.load_pelt_recipes()
+        for f in constants.SPRITE_FOLDERS:
+            Sprites.load_pelt_recipes(f)
         for cat in Cat.all_cats_list:
             cat.sprite = generate_sprite(cat)
         current_screen: Screens = all_screens.get_screen(

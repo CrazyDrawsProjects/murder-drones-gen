@@ -124,7 +124,7 @@ class Cat:
     def __init__(
         self,
         ID: str,
-        species: str,
+        species:str,
         gender_dict: GenderDict,
         pelt: Pelt,
         moons: int,
