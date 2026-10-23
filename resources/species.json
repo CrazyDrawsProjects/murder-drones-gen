@@ -5,7 +5,9 @@
         "male disassembly drone": ["always_m"],
         "worker x disassembly drone hybrid": ["no_breed"]
     },
-    "ran_weights": [7, 3, 3, 1],
+    "ran_weights": {
+        "default": [7, 3, 3, 1]
+    },
     "in_weights": {
         "worker drone": [7, 3, 3, 1],
         "female disassembly drone": [7, 3, 3, 1],
