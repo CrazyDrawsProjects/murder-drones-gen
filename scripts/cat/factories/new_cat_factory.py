@@ -5,6 +5,7 @@ from typing import Tuple, Literal
 from abc import ABC, abstractmethod
 from scripts.cat import save_load
 from scripts.cat.cats import Cat, BACKSTORIES
+from scripts.cat.conditions.permanent_condition import PermanentCondition
 from scripts.cat.enums import CatAge, CatRank, CatSocial
 from scripts.cat.factories.base_factory import BaseCatFactory
 from scripts.cat.factories.typed_dicts import (
@@ -135,6 +136,18 @@ class NewCatFactory(BaseCatFactory, ABC):
         )
 
         Cat.all_cats[cat.ID] = cat
+
+        # Give Solver
+        if cat.gender == "female":
+            if cat.parent1 is not None and cat.parent2 is not None:
+                p1_infected = "solver infected" in cat.parent1.permanent_condition
+                p2_infected = "solver infected" in cat.parent2.permanent_condition
+                if p1_infected or p2_infected:
+                    if cls.rng.randint(1, 2) == 1:
+                        cat.permanent_condition.append("solver infected")
+            else:
+                if cls.rng.randint(1, 100) <= 5:
+                    cat.permanent_condition.append("solver infected")
 
         return cat
 

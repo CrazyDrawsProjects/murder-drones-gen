@@ -1,4 +1,19 @@
 {
+    "solver_infected": {
+        "severity": "major",
+        "can_be_congenital": true,
+        "can_be_acquired": false,
+        "moons_until_discovery": [0,0],
+        "mortality": {},
+        "immune_system_effect": 0.0,
+        "progression": {},
+        "risks": {},
+        "treatment_strength": {
+            "1": [],
+            "2": [],
+            "3": []
+        }
+    },
     "crooked_jaw": {
         "severity": "major",
         "can_be_congenital": true,

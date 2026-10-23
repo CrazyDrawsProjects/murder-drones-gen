@@ -1,0 +1,11 @@
+[
+    {
+        "event_id": "reveal_condition_solver_infected0",
+        "strings": [
+            "There's something off about m_c, but the clan chooses to shrug it off."
+        ],
+        "involved_cats": {
+            "m_c": {}
+        }
+    }
+]
